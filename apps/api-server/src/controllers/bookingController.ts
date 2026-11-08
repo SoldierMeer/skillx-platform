@@ -2,13 +2,16 @@ import { Request, Response } from "express";
 import {
   CreateBookingInput,
   UpdateBookingStatusInput,
-  GetBookingsQuery
+  GetBookingsQuery,
+  VerifyQrPayloadInput
 } from "@skillx/shared-contracts";
 import {
   createBooking,
   updateBookingStatus,
   listBookings,
   getBookingById,
+  generateQrPayload,
+  verifyQrHandshake,
   BookingValidationError,
   BookingNotFoundError,
   UnauthorizedBookingActionError
@@ -144,6 +147,82 @@ export async function updateBookingStatusHandler(req: Request, res: Response): P
     res.status(500).json({
       error: "InternalServerError",
       message: error.message || "Failed to update booking status"
+    });
+  }
+}
+
+export async function getQrPayloadHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized", message: "User not authenticated" });
+      return;
+    }
+
+    const sessionId = req.params.id;
+    const payload = await generateQrPayload(userId, sessionId);
+
+    res.status(200).json({
+      success: true,
+      data: payload
+    });
+  } catch (error: any) {
+    if (error instanceof BookingValidationError) {
+      res.status(400).json({ error: "ValidationError", message: error.message });
+      return;
+    }
+    if (error instanceof BookingNotFoundError) {
+      res.status(404).json({ error: "NotFound", message: error.message });
+      return;
+    }
+    if (error instanceof UnauthorizedBookingActionError) {
+      res.status(403).json({ error: "Forbidden", message: error.message });
+      return;
+    }
+
+    console.error("[BookingController] getQrPayload error:", error);
+    res.status(500).json({
+      error: "InternalServerError",
+      message: error.message || "Failed to generate QR payload"
+    });
+  }
+}
+
+export async function verifyQrHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized", message: "User not authenticated" });
+      return;
+    }
+
+    const sessionId = req.params.id;
+    const payload: VerifyQrPayloadInput = req.body;
+    const updated = await verifyQrHandshake(userId, sessionId, payload);
+
+    res.status(200).json({
+      success: true,
+      message: "QR Handshake verified successfully. Tokens released from escrow.",
+      data: updated
+    });
+  } catch (error: any) {
+    if (error instanceof BookingValidationError) {
+      res.status(400).json({ error: "ValidationError", message: error.message });
+      return;
+    }
+    if (error instanceof BookingNotFoundError) {
+      res.status(404).json({ error: "NotFound", message: error.message });
+      return;
+    }
+    if (error instanceof UnauthorizedBookingActionError) {
+      res.status(403).json({ error: "Forbidden", message: error.message });
+      return;
+    }
+
+    console.error("[BookingController] verifyQr error:", error);
+    res.status(500).json({
+      error: "InternalServerError",
+      message: error.message || "Failed to verify QR handshake"
     });
   }
 }

@@ -12,7 +12,8 @@ import {
   GetBookingsQuerySchema,
   SendMessageSchema,
   CreateReviewSchema,
-  GetMessagesQuerySchema
+  GetMessagesQuerySchema,
+  VerifyQrPayloadSchema
 } from "./schemas";
 
 export type Department = z.infer<typeof DepartmentSchema>;
@@ -28,6 +29,7 @@ export type GetBookingsQuery = z.infer<typeof GetBookingsQuerySchema>;
 export type SendMessageInput = z.infer<typeof SendMessageSchema>;
 export type CreateReviewInput = z.infer<typeof CreateReviewSchema>;
 export type GetMessagesQuery = z.infer<typeof GetMessagesQuerySchema>;
+export type VerifyQrPayloadInput = z.infer<typeof VerifyQrPayloadSchema>;
 
 export type TransactionType =
   | "promo_credit"
@@ -124,6 +126,13 @@ export interface PeerReview {
   feedback: string;
   tags?: string[];
   createdAt: string;
+}
+
+export interface QrPayload {
+  sessionId: string;
+  learnerId: string;
+  timestamp: number;
+  hash: string;
 }
 
 // Socket Event Payload Types

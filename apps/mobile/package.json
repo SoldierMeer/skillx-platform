@@ -1,0 +1,41 @@
+{
+  "name": "mobile",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@skillx/shared-contracts": "*",
+    "@tanstack/react-query": "^5.40.0",
+    "axios": "^1.7.0",
+    "expo": "^51.0.0",
+    "expo-camera": "~15.0.0",
+    "expo-constants": "~16.0.2",
+    "expo-haptics": "~13.0.0",
+    "expo-linking": "~6.3.1",
+    "expo-notifications": "~0.28.0",
+    "expo-router": "^3.5.0",
+    "expo-secure-store": "~13.0.0",
+    "expo-status-bar": "~1.12.1",
+    "lucide-react-native": "^0.395.0",
+    "react": "18.2.0",
+    "react-native": "0.74.0",
+    "react-native-qrcode-svg": "^6.3.1",
+    "react-native-safe-area-context": "4.10.1",
+    "react-native-screens": "3.31.1",
+    "react-native-svg": "15.2.0",
+    "socket.io-client": "^4.7.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "typescript": "^5.4.0"
+  }
+}

@@ -5,7 +5,9 @@ import {
   UpdateBookingStatusInput,
   GetBookingsQuery,
   PaginatedResult,
-  SessionBooking
+  SessionBooking,
+  QrPayload,
+  VerifyQrPayloadInput
 } from "@skillx/shared-contracts";
 import { Session, ISession } from "../models/Session";
 import { User } from "../models/User";
@@ -14,6 +16,7 @@ import {
   releaseEscrowToTutor,
   refundEscrowToLearner
 } from "./walletService";
+import { env } from "../config/env";
 
 export class BookingValidationError extends Error {
   constructor(message: string) {
@@ -207,6 +210,101 @@ export async function updateBookingStatus(
       default:
         throw new BookingValidationError(`Unsupported booking action: ${(input as any).action}`);
     }
+
+    await session.commitTransaction();
+    return booking;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+}
+
+export async function generateQrPayload(userId: string, sessionId: string): Promise<QrPayload> {
+  const session = await Session.findById(sessionId);
+  if (!session) {
+    throw new BookingNotFoundError();
+  }
+
+  if (session.learner.toString() !== userId) {
+    throw new UnauthorizedBookingActionError("Only the learner can generate the session handshake QR payload.");
+  }
+
+  if (session.status !== "accepted") {
+    throw new BookingValidationError(`Cannot generate QR payload for session in '${session.status}' status.`);
+  }
+
+  const timestamp = Date.now();
+  const hash = crypto
+    .createHmac("sha256", env.JWT_SECRET)
+    .update(`${sessionId}:${userId}:${timestamp}`)
+    .digest("hex");
+
+  return {
+    sessionId,
+    learnerId: userId,
+    timestamp,
+    hash
+  };
+}
+
+export async function verifyQrHandshake(
+  tutorId: string,
+  sessionId: string,
+  payload: VerifyQrPayloadInput
+): Promise<ISession> {
+  if (sessionId !== payload.sessionId) {
+    throw new BookingValidationError("Session ID in QR payload does not match target session.");
+  }
+
+  const expectedHash = crypto
+    .createHmac("sha256", env.JWT_SECRET)
+    .update(`${payload.sessionId}:${payload.learnerId}:${payload.timestamp}`)
+    .digest("hex");
+
+  const hashBuffer = Buffer.from(payload.hash, "utf8");
+  const expectedBuffer = Buffer.from(expectedHash, "utf8");
+
+  if (
+    hashBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(hashBuffer, expectedBuffer)
+  ) {
+    throw new BookingValidationError("Invalid QR signature. Tampered or counterfeit QR code detected.");
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const booking = await Session.findById(sessionId).session(session);
+    if (!booking) {
+      throw new BookingNotFoundError();
+    }
+
+    if (booking.tutor.toString() !== tutorId) {
+      throw new UnauthorizedBookingActionError("Only the assigned tutor can scan and verify this session QR code.");
+    }
+
+    if (booking.learner.toString() !== payload.learnerId) {
+      throw new BookingValidationError("Learner ID in QR payload does not match booked learner.");
+    }
+
+    if (booking.status !== "accepted") {
+      throw new BookingValidationError(`Cannot complete session in '${booking.status}' status.`);
+    }
+
+    booking.status = "completed";
+    await booking.save({ session });
+
+    // Release escrow tokens to tutor atomically
+    await releaseEscrowToTutor(
+      booking.learner,
+      booking.tutor,
+      booking.tokenCost,
+      booking._id,
+      session
+    );
 
     await session.commitTransaction();
     return booking;

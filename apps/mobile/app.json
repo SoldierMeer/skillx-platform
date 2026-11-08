@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "SkillX",
+    "slug": "skillx",
+    "scheme": "skillx",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A365D"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "edu.iba.suk.skillx",
+      "infoPlist": {
+        "NSCameraUsageDescription": "SkillX uses the camera to scan peer QR codes and verify campus skill sessions."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A365D"
+      },
+      "package": "edu.iba.suk.skillx",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "SkillX uses the camera to scan peer QR codes and verify campus skill sessions."
+        }
+      ],
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

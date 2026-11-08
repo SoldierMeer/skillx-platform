@@ -97,3 +97,9 @@ export const GetMessagesQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(50)
 });
 
+export const VerifyQrPayloadSchema = z.object({
+  sessionId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid session ID format"),
+  learnerId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid learner ID format"),
+  timestamp: z.number().int().positive(),
+  hash: z.string().min(16, "Invalid QR signature")
+});

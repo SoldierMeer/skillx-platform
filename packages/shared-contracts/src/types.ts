@@ -9,7 +9,10 @@ import {
   SearchSkillsSchema,
   CreateBookingSchema,
   UpdateBookingStatusSchema,
-  GetBookingsQuerySchema
+  GetBookingsQuerySchema,
+  SendMessageSchema,
+  CreateReviewSchema,
+  GetMessagesQuerySchema
 } from "./schemas";
 
 export type Department = z.infer<typeof DepartmentSchema>;
@@ -22,6 +25,9 @@ export type SearchSkillsQuery = z.infer<typeof SearchSkillsSchema>;
 export type CreateBookingInput = z.infer<typeof CreateBookingSchema>;
 export type UpdateBookingStatusInput = z.infer<typeof UpdateBookingStatusSchema>;
 export type GetBookingsQuery = z.infer<typeof GetBookingsQuerySchema>;
+export type SendMessageInput = z.infer<typeof SendMessageSchema>;
+export type CreateReviewInput = z.infer<typeof CreateReviewSchema>;
+export type GetMessagesQuery = z.infer<typeof GetMessagesQuerySchema>;
 
 export type TransactionType =
   | "promo_credit"
@@ -97,6 +103,45 @@ export interface WalletSummary {
   totalSpent: number;
   recentTransactions: TokenTransaction[];
 }
+
+export interface ChatMessage {
+  id: string;
+  sessionId: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  readAt?: string;
+  createdAt: string;
+}
+
+export interface PeerReview {
+  id: string;
+  sessionId: string;
+  reviewerId: string;
+  reviewerName: string;
+  revieweeId: string;
+  rating: number;
+  feedback: string;
+  tags?: string[];
+  createdAt: string;
+}
+
+// Socket Event Payload Types
+export interface JoinSessionPayload {
+  sessionId: string;
+}
+
+export interface ChatMessagePayload {
+  sessionId: string;
+  content: string;
+}
+
+export interface TypingPayload {
+  sessionId: string;
+  isTyping: boolean;
+}
+
+export type NewMessageEvent = ChatMessage;
 
 export interface PaginatedResult<T> {
   data: T[];

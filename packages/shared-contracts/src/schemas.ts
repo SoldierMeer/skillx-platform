@@ -79,3 +79,21 @@ export const GetBookingsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(50).default(10)
 });
+
+export const SendMessageSchema = z.object({
+  sessionId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid session ID format"),
+  content: z.string().trim().min(1, "Message content cannot be empty").max(1000, "Message cannot exceed 1000 characters")
+});
+
+export const CreateReviewSchema = z.object({
+  sessionId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid session ID format"),
+  rating: z.number().int().min(1, "Minimum rating is 1 star").max(5, "Maximum rating is 5 stars"),
+  feedback: z.string().trim().min(5, "Feedback must be at least 5 characters").max(500, "Feedback cannot exceed 500 characters"),
+  tags: z.array(z.string().trim().max(30)).max(5).optional()
+});
+
+export const GetMessagesQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(50)
+});
+

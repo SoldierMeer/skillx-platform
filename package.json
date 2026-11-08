@@ -11,7 +11,8 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "verify": "tsx scripts/verify-sprint1.ts",
-    "verify:sprint2": "tsx scripts/verify-sprint2.ts"
+    "verify:sprint2": "tsx scripts/verify-sprint2.ts",
+    "verify:sprint3": "tsx scripts/verify-sprint3.ts"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

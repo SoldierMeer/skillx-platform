@@ -1,3 +1,4 @@
+import http from "http";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -7,6 +8,9 @@ import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
 import walletRoutes from "./routes/walletRoutes";
+import chatRoutes from "./routes/chatRoutes";
+import reviewRoutes from "./routes/reviewRoutes";
+import { initializeSockets } from "./sockets/socketManager";
 
 export const app = express();
 
@@ -29,6 +33,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/wallet", walletRoutes);
+app.use("/api/v1/sessions", chatRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -39,14 +45,21 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   });
 });
 
-export async function startServer(port = env.PORT) {
+export const httpServer = http.createServer(app);
+export const io = initializeSockets(httpServer);
+
+export async function startServer(port = env.PORT): Promise<http.Server> {
   await connectDB();
-  return app.listen(port, () => {
-    console.log(`====================================================`);
-    console.log(`🚀 SkillX API Engine running on http://localhost:${port}`);
-    console.log(`🎓 Sukkur IBA University Peer-to-Peer Network Active`);
-    console.log(`🔒 Institutional Domain Barrier: @iba-suk.edu.pk`);
-    console.log(`====================================================`);
+  return new Promise<http.Server>((resolve) => {
+    const server = httpServer.listen(port, () => {
+      console.log(`====================================================`);
+      console.log(`🚀 SkillX API Engine running on http://localhost:${port}`);
+      console.log(`💬 Real-Time WebSockets Engine active`);
+      console.log(`🎓 Sukkur IBA University Peer-to-Peer Network Active`);
+      console.log(`🔒 Institutional Domain Barrier: @iba-suk.edu.pk`);
+      console.log(`====================================================`);
+      resolve(server);
+    });
   });
 }
 

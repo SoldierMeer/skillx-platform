@@ -6,7 +6,10 @@ import {
   RequestOtpSchema,
   VerifyOtpSchema,
   UpdateProfileSchema,
-  SearchSkillsSchema
+  SearchSkillsSchema,
+  CreateBookingSchema,
+  UpdateBookingStatusSchema,
+  GetBookingsQuerySchema
 } from "./schemas";
 
 export type Department = z.infer<typeof DepartmentSchema>;
@@ -16,6 +19,17 @@ export type RequestOtpInput = z.infer<typeof RequestOtpSchema>;
 export type VerifyOtpInput = z.infer<typeof VerifyOtpSchema>;
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
 export type SearchSkillsQuery = z.infer<typeof SearchSkillsSchema>;
+export type CreateBookingInput = z.infer<typeof CreateBookingSchema>;
+export type UpdateBookingStatusInput = z.infer<typeof UpdateBookingStatusSchema>;
+export type GetBookingsQuery = z.infer<typeof GetBookingsQuerySchema>;
+
+export type TransactionType =
+  | "promo_credit"
+  | "escrow_lock"
+  | "escrow_release"
+  | "escrow_refund";
+
+export type TransactionStatus = "pending" | "completed" | "failed";
 
 export interface UserProfile {
   _id: string;
@@ -48,15 +62,40 @@ export interface AuthResponse {
 
 export interface SessionBooking {
   _id: string;
-  learnerId: string;
-  tutorId: string;
+  learner: string | UserProfile;
+  tutor: string | UserProfile;
   skill: string;
   campusHub: CampusHub;
-  scheduledTime: string;
+  scheduledTime: string | Date;
+  durationHours: number;
   tokenCost: number;
   status: SessionStatus;
   verificationPin?: string;
+  cancellationReason?: string;
   qrPayload?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TokenTransaction {
+  id: string;
+  transactionId: string;
+  type: TransactionType;
+  amount: number;
+  fromUser?: string | UserProfile;
+  toUser?: string | UserProfile;
+  sessionId?: string;
+  status: TransactionStatus;
+  description?: string;
+  createdAt: string;
+}
+
+export interface WalletSummary {
+  tokenBalance: number;
+  escrowBalance: number;
+  totalEarned: number;
+  totalSpent: number;
+  recentTransactions: TokenTransaction[];
 }
 
 export interface PaginatedResult<T> {

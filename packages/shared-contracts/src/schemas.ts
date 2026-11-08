@@ -28,7 +28,8 @@ export const SessionStatusSchema = z.enum([
   "accepted",
   "in_progress",
   "completed",
-  "cancelled"
+  "cancelled",
+  "rejected"
 ]);
 
 export const RequestOtpSchema = z.object({
@@ -56,4 +57,25 @@ export const SearchSkillsSchema = z.object({
   type: z.enum(["teach", "learn"]).default("teach"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(12)
+});
+
+export const CreateBookingSchema = z.object({
+  tutorId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid tutor ID format"),
+  skill: z.string().trim().min(2, "Skill must be at least 2 characters").max(50, "Skill cannot exceed 50 characters"),
+  campusHub: CampusHubSchema,
+  scheduledTime: z.coerce.date().refine((d) => d > new Date(), "Session must be scheduled in the future"),
+  durationHours: z.number().int().min(1).max(3).default(1)
+});
+
+export const UpdateBookingStatusSchema = z.object({
+  action: z.enum(["accept", "reject", "cancel", "complete"]),
+  verificationPin: z.string().length(4, "PIN must be exactly 4 digits").regex(/^\d{4}$/, "PIN must be numeric").optional(),
+  reason: z.string().max(200, "Reason cannot exceed 200 characters").optional()
+});
+
+export const GetBookingsQuerySchema = z.object({
+  role: z.enum(["learner", "tutor", "all"]).default("all"),
+  status: SessionStatusSchema.optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(50).default(10)
 });

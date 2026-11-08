@@ -5,6 +5,8 @@ import { env } from "./config/env";
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
+import bookingRoutes from "./routes/bookingRoutes";
+import walletRoutes from "./routes/walletRoutes";
 
 export const app = express();
 
@@ -25,6 +27,8 @@ app.get("/api/health", (_req, res) => {
 // Mount API routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/wallet", walletRoutes);
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

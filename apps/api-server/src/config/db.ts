@@ -8,12 +8,12 @@ export async function connectDB(overrideUri?: string): Promise<typeof mongoose> 
 
   try {
     if (uri === "memory") {
-      const { MongoMemoryServer } = await import("mongodb-memory-server");
-      mongoServer = await MongoMemoryServer.create();
+      const { MongoMemoryReplSet } = await import("mongodb-memory-server");
+      mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
       const memoryUri = mongoServer.getUri();
-      console.log(`[Database] Starting In-Memory MongoDB at ${memoryUri}`);
+      console.log(`[Database] Starting In-Memory Replica Set at ${memoryUri}`);
       const conn = await mongoose.connect(memoryUri);
-      console.log(`[Database] Connected successfully to In-Memory MongoDB`);
+      console.log(`[Database] Connected successfully to In-Memory Replica Set with ACID Transaction Support`);
       return conn;
     }
 
@@ -26,16 +26,16 @@ export async function connectDB(overrideUri?: string): Promise<typeof mongoose> 
   } catch (error: any) {
     console.error(`[Database] Failed to connect to MongoDB (${uri}):`, error.message);
     if (env.NODE_ENV !== "production") {
-      console.log(`[Database] Falling back to In-Memory MongoDB for local development/testing...`);
+      console.log(`[Database] Falling back to In-Memory Replica Set for local development/testing...`);
       try {
-        const { MongoMemoryServer } = await import("mongodb-memory-server");
-        mongoServer = await MongoMemoryServer.create();
+        const { MongoMemoryReplSet } = await import("mongodb-memory-server");
+        mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
         const memoryUri = mongoServer.getUri();
         const conn = await mongoose.connect(memoryUri);
-        console.log(`[Database] Connected to In-Memory MongoDB at ${memoryUri}`);
+        console.log(`[Database] Connected to In-Memory Replica Set at ${memoryUri} with ACID Transaction Support`);
         return conn;
       } catch (inMemErr: any) {
-        console.error(`[Database] In-memory fallback failed:`, inMemErr.message);
+        console.error(`[Database] In-memory replica set fallback failed:`, inMemErr.message);
         throw inMemErr;
       }
     }
